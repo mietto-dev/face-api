@@ -4,6 +4,10 @@ const fastify = require('fastify')({ logger: true })
 
 const port = process.env.SERVER_PORT || 80
 
+fastify.register(require('fastify-cors'), {})
+
+fastify.register(require('fastify-multipart'))
+
 for (const r in routes) {
   fastify.register(routes[r])
 }
