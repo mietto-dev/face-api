@@ -115,6 +115,15 @@ async function routes (fastify, options) {
     fs.unlinkSync(`images/${request.params.picname}`)
   })
 
+  fastify.get('/users/:userId', async (request, reply) => {
+    let filtered = users.filter((el) => {
+      return el.userId === request.params.userId
+    })
+    let user = filtered[0]
+
+    reply.send({ user })
+  })
+
   fastify.get('/test', async (request, reply) => {
     return { message: 'face-api is up and running' }
   })
