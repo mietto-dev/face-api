@@ -75,11 +75,11 @@ async function routes (fastify, options) {
   })
 
   fastify.get('/pictures/:picname', async (request, reply) => {
-    let image = fs.readFileSync(`images/${request.params.picname}.png`)
+    let image = fs.readFileSync(`images/${request.params.picname}`)
 
     reply.type('image/png').send(image)
 
-    fs.unlinkSync(`images/${request.picname}.png`)
+    fs.unlinkSync(`images/${request.params.picname}`)
   })
 
   fastify.post('/test', async (request, reply) => {
