@@ -61,7 +61,7 @@ async function routes (fastify, options) {
         }
 
         body = {
-          'url': `${process.env.SERVER_URL}/pictures/${person.personId}_${i}.png`
+          'url': `http://${process.env.SERVER_URL}/pictures/${person.personId}_${i}.png`
         }
         // add person face
         let addedFace = await faceClient.addAPersonFace({
