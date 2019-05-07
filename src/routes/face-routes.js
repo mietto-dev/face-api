@@ -68,6 +68,7 @@ async function routes (fastify, options) {
         }
       } catch (err) {
         console.log(err, userId)
+        throw err
       }
     })
   })
