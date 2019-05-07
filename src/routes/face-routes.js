@@ -2,6 +2,11 @@ const cognitive = require('cognitive-services')
 const concat = require('concat-stream')
 const fs = require('fs')
 const pump = require('pump')
+let userId = ''
+let person = {}
+const users = require('../users.js')
+let count = 0
+let countOriginal = 0
 
 const faceClient = new cognitive.face({
   apiKey: process.env.API_KEY,
@@ -29,50 +34,77 @@ async function routes (fastify, options) {
       reply.code(200).send('upload completed')
     })
 
+    count = mp._eventsCount
+    countOriginal = mp._eventsCount
+
     mp.on('field', async function (key, value) {
       try {
         console.log('form-data', key)
-        let parameters = {
-          'personGroupId': 'bett-test-group'
+
+        if (key === 'userId') {
+          userId = value
+        } else {
+          // let url = `https://brazilsouth.api.cognitive.microsoft.com/face/v1.0/persongroups/${personGroupId}/persons/${person.id}/persistedFaces`
+
+          let filtered = users.filter((el) => {
+            return el.userId === userId
+          })
+
+          let user = filtered[0]
+
+          let face = value
+          // persist on filesystem
+
+          let i = key.split('_')[1]
+
+          let base64Data = face.replace(/^data:image\/png;base64,/, '')
+
+          fs.writeFileSync(`images/${user.userId}_${i}.png`, base64Data, 'base64')
+
+          count--
+          if (count === 0) {
+            await processFiles(user, countOriginal)
+          }
         }
-        let body = {
-          'name': 'Felipe Mietto',
-          'userData': '37472906808'
-        }
-        let person = await faceClient.createAPerson({
-          parameters,
-          body
-        })
+      } catch (err) {
+        console.log(err, userId)
+      }
+    })
+  })
 
-        // let url = `https://brazilsouth.api.cognitive.microsoft.com/face/v1.0/persongroups/${personGroupId}/persons/${person.id}/persistedFaces`
+  async function processFiles (user, countOriginal) {
+    let parameters = {
+      'personGroupId': 'bett-test-group'
+    }
+    let body = {
+      'name': user.name,
+      'userData': user.cpf
+    }
+    person = await faceClient.createAPerson({
+      parameters,
+      body
+    })
 
-        let face = value
-        // persist on filesystem
+    parameters = {
+      'personGroupId': 'bett-test-group',
+      'personId': person.personId
+    }
 
-        let i = key.split('_')[1]
-
-        let base64Data = face.replace(/^data:image\/png;base64,/, '')
-
-        fs.writeFileSync(`images/${person.personId}_${i}.png`, base64Data, 'base64')
-
-        parameters = {
-          'personGroupId': 'bett-test-group',
-          'personId': person.personId
-        }
-
-        body = {
-          'url': `http://${process.env.SERVER_URL}/pictures/${person.personId}_${i}.png`
-        }
-        // add person face
+    for (let i = 0; i < countOriginal; i++) {
+      body = {
+        'url': `http://${process.env.SERVER_URL}/pictures/${user.userId}_${i}.png`
+      }
+      // add person face
+      try {
         let addedFace = await faceClient.addAPersonFace({
           parameters,
           body
         })
       } catch (err) {
-        console.error(err)
+        console.log(err, person.personId)
       }
-    })
-  })
+    }
+  }
 
   fastify.get('/pictures/:picname', async (request, reply) => {
     let image = fs.readFileSync(`images/${request.params.picname}`)
