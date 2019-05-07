@@ -82,7 +82,7 @@ async function routes (fastify, options) {
     fs.unlinkSync(`images/${request.params.picname}`)
   })
 
-  fastify.post('/test', async (request, reply) => {
+  fastify.get('/test', async (request, reply) => {
     return { message: 'face-api is up and running' }
   })
 }
