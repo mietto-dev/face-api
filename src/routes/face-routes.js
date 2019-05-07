@@ -75,7 +75,7 @@ async function routes (fastify, options) {
   })
 
   fastify.get('/pictures/:picname', async (request, reply) => {
-    let image = fs.readFileSync(`images/${request.picname}.png`)
+    let image = fs.readFileSync(`images/${request.params.picname}.png`)
 
     reply.type('image/png').send(image)
 
