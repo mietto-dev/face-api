@@ -124,6 +124,14 @@ async function routes(fastify, options) {
         console.log(err, person.personId);
       }
     }
+
+    parameters = {
+      personGroupId: "bett-2030-group"
+    };
+
+    let trainedResult = await faceClient.trainPersonGroup({
+      parameters
+    });
   }
 
   fastify.get("/pictures/:picname", async (request, reply) => {
