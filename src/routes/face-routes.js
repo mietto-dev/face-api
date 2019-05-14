@@ -11,6 +11,8 @@ let countOriginal = 0;
 const atob = require("atob");
 const btoa = require("btoa");
 let registeredUsers = require("../../registered.json");
+const FormData = require("form-data");
+const axios = require("axios");
 
 const faceClient = new cognitive.face({
   apiKey: process.env.API_KEY,
@@ -97,6 +99,32 @@ async function routes(fastify, options) {
       parameters,
       body
     });
+
+    try {
+      // bett students api
+      let bettURL = "https://betteducar-api.azurewebsites.net/api/students";
+      let image = fs.createReadStream(
+        `images/${btoa(user.email + "_" + 0)}.png`
+      );
+      let student = {
+        name: user.name,
+        classIds: [],
+        personId: person.personId
+      };
+
+      let data = new FormData();
+      data.append("student", JSON.stringify(student));
+      data.append("image", image, image.path);
+
+      let res = await axios.post(bettURL, data, {
+        headers: {
+          accept: "application/json",
+          "Content-Type": `multipart/form-data;boundary=${data._boundary}`
+        }
+      });
+    } catch (betterr) {
+      console.error(betterr);
+    }
 
     user.personId = person.personId;
     registeredUsers.push(user);
